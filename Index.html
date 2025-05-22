@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shane Campfield | Hacker Friend | SecOps | Nerd</title>
+
+  <!-- Google Font: Hack -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Hack&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+  />
+
+  <style>
+    /* ====== BODY & BASE ====== */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    body {
+      background: url("https://images.hdqwalls.com/wallpapers/dark-abstract-blur-4k-on.jpg")
+        no-repeat center center fixed,
+        black;
+      background-size: cover;
+      color: #d4d4d4;
+      font-family: "Hack", monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== BOOT OVERLAY ===== */
+    #bootOverlay {
+      position: fixed;
+      inset: 0; /* top: 0; left: 0; right: 0; bottom: 0; */
+      background: black;
+      color: #62dafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 9999;
+      font-family: monospace;
+      text-align: left;
+      padding: 1rem;
+    }
+    #bootText {
+      width: 80%;
+      max-width: 800px;
+      margin: 0 auto;
+      white-space: pre;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+    .fade-out {
+      animation: fadeOut 1s forwards;
+    }
+    @keyframes fadeOut {
+      to {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
+    /* ===== TERMINAL ===== */
+    .terminal {
+      display: none;
+      width: 40%;
+      max-width: 80%;
+      height: 40%;
+      max-height: 80%;
+      background: rgba(46, 46, 51, 0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 1), 0 0 15px rgba(60, 120, 180, 1);
+      overflow: hidden;
+      position: relative;
+      flex-direction: column;
+    }
+
+    /* Fade/scale animation for kiosk feel */
+    .fade-in {
+      animation: terminalFadeIn 0.8s ease-out forwards;
+    }
+    @keyframes terminalFadeIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.85);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .terminal-header {
+      background: rgba(46, 46, 51, 0.4);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    }
+    .terminal-dots {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .terminal-dots span {
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #444;
+      transition: background 0.3s;
+    }
+    .terminal-dots span.close {
+      background: #ff5f56;
+    }
+    .terminal-dots span.minimize {
+      background: #ffbd2e;
+    }
+    .terminal-dots span.maximize {
+      background: #27c93f;
+    }
+    .terminal-dots span:hover {
+      background: #777;
+    }
+
+    .terminal-title {
+      color: #ffffff;
+      font-size: 1rem;
+      text-align: center;
+      flex: 2;
+    }
+
+    .terminal-body {
+      flex: 2;
+      padding: 10px;
+      font-size: 1rem;
+      line-height: 2;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .terminal-body::-webkit-scrollbar {
+      width: 10px;
+    }
+    .terminal-body::-webkit-scrollbar-thumb {
+      background: #4ec9b0;
+      border-radius: 5px;
+    }
+
+    .command-line {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 1);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 1), 0 0 15px rgba(0, 0, 0, 1);
+    }
+    .prompt {
+      color: #62dafb;
+      margin-right: 10px;
+      text-shadow: 0 0 5px rgba(78, 201, 176, 0.5);
+      animation: prompt-glow 2s infinite;
+    }
+    input {
+      background: none;
+      border: none;
+      color: #d4d4d4;
+      font-family: inherit;
+      font-size: inherit;
+      width: 100%;
+      outline: none;
+    }
+
+    .output {
+      overflow-y: 0;
+      max-height: calc(100% - 50px);
+    }
+    .output div {
+      padding: 5px 0;
+      animation: text-flicker 0.1s alternate ease-in-out 2;
+    }
+    .output .info {
+      color: #62dafb;
+    }
+    .output .success {
+      color: #4ec9b0;
+    }
+    .output .error {
+      color: #ff5252;
+    }
+
+    .loading-bar {
+      width: 50%;
+      background: rgba(255, 255, 255, 0);
+      height: 10px;
+      margin-top: 10px;
+      border-radius: 0px;
+      overflow: hidden;
+      position: relative;
+    }
+    .loading-bar .progress {
+      width: 0;
+      height: 100%;
+      background: #4ec9b0;
+      animation: load-progress 1.5s linear forwards;
+    }
+
+    a {
+      color: #ffffff;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover {
+      color: #4ec9b0;
+      text-decoration: underline;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: #d4d4d4;
+      font-size: 1rem;
+    }
+
+    @keyframes prompt-glow {
+      0%,
+      100% {
+        text-shadow: 0 0 5px rgba(78, 201, 176, 1);
+      }
+      50% {
+        text-shadow: 0 0 15px rgba(78, 201, 176, 1);
+      }
+    }
+    @keyframes text-flicker {
+      0% {
+        opacity: 0.9;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    @keyframes load-progress {
+      0% {
+        width: 0;
+      }
+      100% {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .terminal {
+        width: 90%;
+        height: 90%;
+      }
+      .terminal-body {
+        font-size: 1rem;
+        padding: 15px;
+      }
+      .command-line {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body onclick="focusInput()">
+
+  <!-- ===== BOOT OVERLAY ===== -->
+  <div id="bootOverlay">
+    <div id="bootText"></div>
+  </div>
+
+  <!-- ===== TERMINAL ===== -->
+  <div class="terminal">
+    <div class="terminal-header">
+      <div class="terminal-dots">
+        <span class="close"></span>
+        <span class="minimize"></span>
+        <span class="maximize"></span>
+      </div>
+      <div class="terminal-title" id="terminalTitle">
+        Portfolio Terminal [Session: user]
+      </div>
+    </div>
+    <div class="terminal-body" id="terminalBody">
+      <div class="output" id="output"></div>
+    </div>
+    <div class="command-line">
+      <span class="prompt" id="prompt"></span>
+      <input type="text" id="commandInput" autofocus autocomplete="off" />
+    </div>
+  </div>
+
+  <footer>&copy; 2025 Shane Campfield. All rights reserved.</footer>
+
+  <script>
+    /* =============================
+       SIMULATED BOOT-UP SEQUENCE
+       ============================= */
+    const bootLines = [
+      "Powering on...",
+      "BIOS Version F3j",
+      "POST checks in progress...",
+      "Detecting peripherals... OK",
+      "Starting system kernel...",
+      "Initializing OS...",
+      "Launching portfolio terminal..."
+    ];
+    const typingSpeed = 1;  // ms per character
+    const lineDelay = 1;    // ms after each line
+
+    let currentLine = 0;
+    const bootTextEl = document.getElementById("bootText");
+    const bootOverlay = document.getElementById("bootOverlay");
+
+    function typeLine() {
+      if (currentLine < bootLines.length) {
+        const lineText = bootLines[currentLine];
+        let charIndex = 0;
+
+        const lineEl = document.createElement("div");
+        lineEl.textContent = "";
+        bootTextEl.appendChild(lineEl);
+
+        const typingInterval = setInterval(() => {
+          if (charIndex < lineText.length) {
+            lineEl.textContent += lineText.charAt(charIndex);
+            charIndex++;
+          } else {
+            clearInterval(typingInterval);
+            currentLine++;
+            setTimeout(typeLine, lineDelay);
+          }
+        }, typingSpeed);
+      } else {
+        // Boot sequence done: fade out overlay, fade in terminal
+        setTimeout(() => {
+          bootOverlay.classList.add("fade-out");
+          // After the overlay fade finishes
+          setTimeout(() => {
+            bootOverlay.style.display = "none";
+            const terminal = document.querySelector(".terminal");
+            // Show the terminal & add terminal fade-in
+            terminal.style.display = "flex";
+            terminal.classList.add("fade-in");
+
+            // Auto-run "help" upon terminal load
+            handleCommand("help");
+          }, 1000);
+        }, 500);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", typeLine);
+
+    /* =============================
+       TERMINAL SCRIPT
+       ============================= */
+    const outputElement = document.getElementById("output");
+    const inputElement = document.getElementById("commandInput");
+    const promptElement = document.getElementById("prompt");
+    const terminalTitle = document.getElementById("terminalTitle");
+    const terminalBody = document.getElementById("terminalBody");
+
+    let username = `user${Math.floor(Math.random() * 1000)}`;
+
+    const commands = {
+      help: {
+        type: "info",
+        text:
+          "<i class='fas fa-info-circle'></i> Available commands: whoami, projects, contact, social, resume, tree -a, sudo, clear",
+      },
+      whoami: {
+        type: "success",
+        text:
+          "<i class='fa-solid fa-image-portrait'></i> A Senior Cyber Security Engineer with over twenty years of experience in IT. I'm passionate about driving strategic security initiatives that deliver measurable value and tangible returns on investment. With expertise in blue, red, and purple team operations, I specialize in securing systems, mitigating risks, and aligning security strategies with organizational goals. By combining deep technical proficiency with a results-driven approach, I strive to strengthen defenses, optimize resources, and design cost-effective security solutions. My focus is on creating resilient, scalable strategies that empower organizations to achieve long-term success in an ever-evolving threat landscape.",
+      },
+      projects: {
+        type: "info",
+        text:
+          "<i class='fas fa-folder-open'></i> Project: <a href='https://tryhackme.com/p/captureflagsnotfeels' target='_blank'>TryHackMe</a> | Project: <a href='https://app.hackthebox.com/profile/1161631' target='_blank'>Hack The Box</a> | Project: <a href='https://cyberdefenders.org/p/captureflagsnotfeels' target='_blank'>CyberDefenders</a> | Project: <a href='https://app.letsdefend.io/user/captureflagsnotfeels' target='_blank'>Lets Defend</a> | Project: <a href='https://blueteamlabs.online/public/user/0264b733e7d4aeb5bd6726' target='_blank'>Blue Team Labs Online</a>",
+      },
+      contact: {
+        type: "info",
+        text:
+          "<i class='fas fa-envelope'></i> Email: <a href='mailto:shanecampfield@outlook.com' target='_blank'>shanecampfield@outlook.com</a> | <i class='fab fa-linkedin'></i> LinkedIn: <a href='https://www.linkedin.com/in/shane-campfield-19620399' target='_blank'>Shane Campfield</a>",
+      },
+      social: {
+        type: "info",
+        text:
+          "<i class='fab fa-square-github'></i> GitHub: <a href='https://github.com/captureflagsnotfeels' target='_blank'>captureflagsnotfeels</a> | <i class='fab fa-square-x-twitter'></i> <a href='https://x.com/capture_flags' target='_blank'>@capture_flags</a>",
+      },
+
+      resume: {
+        type: "info",
+        text:
+          "<i class='fa-solid fa-file'></i> Digital Resume available on LinkedIn: <a href='https://www.linkedin.com/in/shane-campfield-19620399' target='_blank'>Shane Campfield</a>",
+      },
+
+      sudo: {
+        type: "error",
+        text: `<i class='fas fa-exclamation-triangle'></i> ${username} is not in the sudoers file. This incident will be reported.`,
+      },
+
+      "tree -a": {
+        type: "info",
+        text: `<pre><i class="fa-solid fa-briefcase"></i> Portfolio
+├── whoami
+├── projects
+│   ├── Hack The Box
+│   ├── Cyber Defenders
+│   ├── Lets Defend
+│   └── Blue Team Labs Online
+├── contact
+├── social
+├── resume
+└── .commands
+    └── hack
+</pre>`,
+      },
+
+      hack: {
+        type: "info",
+        action: () => {
+          const timestamp = new Date().toLocaleTimeString();
+          const steps = [
+            "Crafting payload...",
+            `Target IP: ${generateRandomIP()}`,
+            "Sending payload to target...",
+            "Unpacking...",
+            "Attempting to install...",
+            "Attack detected! Your IP has been logged. Connection Terminated!",
+            '<i class="fa-solid fa-caret-right"></i> <a href="https://www.offsec.com/blog/what-it-means-to-try-harder/" target="_blank">Try Harder</a> <i class="fa-solid fa-caret-left">',
+          ];
+
+          steps.forEach((step, index) => {
+            setTimeout(() => {
+              if (
+                step.includes("Crafting payload...") ||
+                step.includes("Attempting to install...")
+              ) {
+                appendOutput(timestamp, "error", step);
+                addLoadingBar();
+              } else {
+                appendOutput(timestamp, "error", step);
+              }
+            }, index * 2000);
+          });
+        },
+      },
+
+      clear: {
+        type: "info",
+        text: "",
+        action: () => {
+          outputElement.innerHTML = "";
+          appendOutput(
+            new Date().toLocaleTimeString(),
+            "info",
+            commands.help.text
+          );
+        },
+      },
+    };
+
+    // Listen for user input
+    inputElement.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        const command = inputElement.value.trim();
+        inputElement.value = "";
+        handleCommand(command);
+      }
+    });
+
+    function handleCommand(command) {
+      const timestamp = new Date().toLocaleTimeString();
+      if (commands[command]) {
+        if (commands[command].action) {
+          commands[command].action();
+        } else {
+          appendOutput(timestamp, commands[command].type, commands[command].text);
+        }
+      } else {
+        appendOutput(
+          timestamp,
+          "error",
+          `<i class='fas fa-times-circle'></i> Command not found: ${command}. Type 'help' for a list of commands.`
+        );
+      }
+    }
+
+    function appendOutput(timestamp, type, text) {
+      const line = document.createElement("div");
+      line.classList.add(type);
+      line.innerHTML = `<span style="color: #ffffff;">[${timestamp}]</span> ${text}`;
+      outputElement.appendChild(line);
+      setTimeout(() => {
+        terminalBody.scrollTop = terminalBody.scrollHeight;
+      }, 10);
+    }
+
+    function addLoadingBar() {
+      const loadingBar = document.createElement("div");
+      loadingBar.classList.add("loading-bar");
+      const progress = document.createElement("div");
+      progress.classList.add("progress");
+      loadingBar.appendChild(progress);
+      outputElement.appendChild(loadingBar);
+    }
+
+    function generateRandomIP() {
+      return Array(4)
+        .fill(0)
+        .map(() => Math.floor(Math.random() * 254))
+        .join(".");
+    }
+
+    function focusInput() {
+      inputElement.focus();
+    }
+
+    window.onload = function () {
+      terminalTitle.textContent = `Hello World [Session: ${username}@portfolio]`;
+      promptElement.textContent = `${username}@portfolio:~$`;
+    };
+  </script>
+</body>
+</html>
